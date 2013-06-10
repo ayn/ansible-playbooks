@@ -1,0 +1,14 @@
+#!/bin/sh
+
+echo
+echo " ********************************************************"
+echo " * This server is configured using Ansible."
+echo " * To change configuration, modify the playbooks vars"
+echo " * and re-run the play."
+echo " * "
+echo " * See https://github.com/fourkitchens/server-playbooks"
+echo " * and https://github.com/phred/5minbootstrap/"
+echo " * "
+echo " * /ayn"
+echo " ********************************************************"
+echo

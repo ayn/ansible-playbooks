@@ -1,0 +1,260 @@
+##
+# Ansible playbook for setting up a LAMP development server on Ubuntu 12.04.
+#
+
+---
+- hosts: wordpress
+  sudo: yes
+  vars:
+    server_hostname: 'digitalocean.andrewng.com'
+    wordpress_version: 3.5.1
+
+  vars_files:
+    - vars/default-settings.yml
+    - vars/private-settings.yml
+
+  tasks:
+    - name: Update APT package cache
+      action: apt update_cache=yes
+      tags: common
+
+    - name: Run apt-get upgrade
+      action: apt upgrade=dist
+      tags: common
+
+    - name: Install fail2ban
+      action: apt pkg=fail2ban state=installed
+      tags: common
+
+    - name: zsh
+      action: apt pkg=zsh state=installed
+      tags: common
+
+    - name: Add ayn user
+      action: user name=ayn password=$ayn_password shell=/usr/bin/zsh
+      tags: common
+
+    - name: Add authorized key for ayn
+      action: authorized_key user=ayn key='$FILE(files/ayn.pub)'
+      tags: common
+
+    - name: Add ray user
+      action: user name=ray password=$ray_password shell=/usr/bin/zsh
+      tags: common
+
+    - name: Add authorized key for ray
+      action: authorized_key user=ray key='$FILE(files/ray.pub)'
+      tags: common
+
+    - name: Remove sudo group rights
+      action: lineinfile dest=/etc/sudoers regexp="^%sudo" state=absent
+      tags: common
+
+    - name: Add ayn user to sudoers
+      action: lineinfile dest=/etc/sudoers regexp="ayn ALL" line="ayn ALL=(ALL) ALL" state=present
+      tags: common
+
+    - name: Add ray user to sudoers
+      action: lineinfile dest=/etc/sudoers regexp="ray ALL" line="ray ALL=(ALL) ALL" state=present
+      tags: common
+
+    - name: Disallow root SSH access
+      action: lineinfile dest=/etc/ssh/sshd_config regexp="^PermitRootLogin" line="PermitRootLogin no" state=present
+      tags: common
+      notify: Restart sshd
+
+    - name: Disallow password authentication
+      action: lineinfile dest=/etc/ssh/sshd_config regexp="^PasswordAuthentication" line="PasswordAuthentication no" state=present
+      tags: common
+      notify: Restart sshd
+
+    - name: Install unattended-upgrades
+      action: apt pkg=unattended-upgrades state=present
+      tags: common
+
+    - name: Adjust APT update intervals
+      action: copy src=files/apt_periodic dest=/etc/apt/apt.conf.d/10periodic
+      tags: common
+
+    - name: Make sure unattended-upgrades only installs from $ubuntu_release-security
+      action: lineinfile dest=/etc/apt/apt.conf.d/50unattended-upgrades regexp="$ubuntu_release-updates" state=absent
+      tags: common
+
+    - name: Copy debconf selections so that Postfix can configure itself non-interactively
+      copy: src=files/postfix_selections  dest=/tmp/postfix_selections
+      tags: common
+
+    - name: Set up Postfix to relay mail
+      action: command debconf-set-selections /tmp/postfix_selections
+      tags: common
+
+    - name: Install logwatch
+      action: apt pkg=logwatch state=installed
+      tags: common
+
+    - name: Make logwatch mail $logwatch_email daily
+      action: lineinfile dest=/etc/cron.daily/00logwatch regexp="^/usr/sbin/logwatch" line="/usr/sbin/logwatch --output mail --mailto $logwatch_email --detail high" state=present create=yes
+      tags: common
+
+    ##
+    # Apt package installation of required software.
+    #
+    - name: General | Install required packages.
+      action: apt pkg=$item state=installed
+      with_items:
+        - php5
+        - apache2
+        - libapache2-modsecurity
+        - mysql-server
+        - mysql-client
+        - php5-mysql
+        - php-apc
+        - php5-xmlrpc
+        - php-soap
+        - php5-gd
+        - php5-memcache
+        - php5-memcached
+        - php5-curl
+        - php5-tidy
+        - unzip
+        - python-mysqldb
+        - git
+        - screen
+        - memcached
+        - strace
+        - atsar
+        - uptimed
+        - subversion
+        - vim
+        - ack
+
+    - name: my dotfiles, will have to rake install later
+      git: repo=git://github.com/ayn/dotfiles.git dest=~ayn/.dotfiles
+
+    - name: chown dotfiles
+      file: path=~ayn/.dotfiles recurse=yes owner=ayn group=ayn state=directory
+
+    ##
+    # Message of the day explaining server is under control of Ansible.
+    #
+    - name: General | Message of the day explaining server is under Ansible control.
+      action: copy src=files/etc-update-motd-d-95-ansible dest=/etc/update-motd.d/95-ansible mode=755
+      tags: common
+
+    ##
+    # PHP Setup.
+    #
+    - name: PHP | Configuration file, php.ini
+      action: template src=templates/etc-php5-apache2-php-ini.j2 dest=/etc/php5/apache2/php.ini
+      tags: common
+
+    - name: APC | Cache configuration file, apc.ini
+      action: template src=templates/etc-php5-conf-d-apc-ini.j2 dest=/etc/php5/conf.d/apc.ini
+      tags: common
+
+    ##
+    # MySQL database setup.
+    #
+    - name: MySQL | Configuration file, my.cnf
+      action: template src=templates/etc-mysql-my-cnf.j2 dest=/etc/mysql/my.cnf
+      tags: common
+
+    - include: common-tasks/mysql-secure.yml
+
+    ##
+    # Wordpress MySQL setup
+    #
+    - name: Wordpress MySQL database
+      mysql_db: db=wordpress state=present
+      tags: wp_mysql
+
+    - name: Wordpress MySQL setup
+      mysql_user: name=wordpress password=$wordpress_mysql_user_passwd priv=wordpress.*:ALL state=present
+      tags: wp_mysql
+
+    ##
+    # Apache2 setup.
+    #
+    - name: Apache | Enable some required modules
+      action: command a2enmod rewrite vhost_alias expires
+      tags: common
+
+    - name: Apache | Configuration file for our site
+      action: template src=templates/etc-apache2-sites-available-wordpress.j2 dest=/etc/apache2/sites-available/wordpress
+      tags: common
+
+    - name: Apache | Disable the default site
+      action: command a2dissite default
+      tags: common
+
+    - name: Apache | Enable our new site
+      action: command a2ensite wordpress
+      tags: common
+
+    - name: Restart Apache
+      action: service name=apache2 state=restarted
+      tags: common
+
+    - name: Restart MySQL
+      action: service name=mysql state=restarted
+      tags: common
+
+    ##
+    # Wordpress
+    #
+    - name: Wordpress
+      subversion: repo=http://core.svn.wordpress.org/tags/$wordpress_version dest=/var/www/wordpress
+      tags: wordpress
+
+    ##
+    # Wordpress plugins
+    #
+    - name: Wordpress mu domain mapping
+      subversion: repo=http://svn.wp-plugins.org/{{ item.name }}/{{ item.version }}/ dest=/var/www/wordpress/wp-content/plugins/{{ item.name }}
+      tags: wp_plugins
+      with_items:
+        - {name: all-in-one-favicon, version: trunk}
+        - {name: better-wp-security, version: tags/3.5.2}
+        - {name: bulk-move, version: tags/0.9}
+        - {name: captain-typekit, version: trunk}
+        - {name: disqus-comment-system, version: tags/2.74}
+        - {name: embedded-video-with-link, version: tags/4.1}
+        - {name: feedburner-plugin, version: trunk}
+        - {name: google-analytics-for-wordpress, version: tags/4.3.3}
+        - {name: intensedebate, version: tags/2.9.5}
+        - {name: jquery-image-lazy-loading, version: tags/0.20}
+        - {name: link-manager, version: trunk}
+        - {name: milestone, version: tags/1.0}
+        - {name: order-categories, version: trunk}
+        - {name: prev-next-keyboard-navigation, version: tags/0.6}
+        - {name: rsvp, version: tags/1.7.0}
+        - {name: social, version: tags/2.9.1}
+        - {name: syntaxhighlighter, version: trunk}
+        - {name: twitter-blackbird-pie, version: tags/0.5.3}
+        - {name: unfiltered-mu, version: trunk}
+        - {name: w3-total-cache, version: tags/0.9.2.11}
+        - {name: wordpress-importer, version: tags/0.6.1}
+        - {name: wordpress-mu-domain-mapping, version: tags/0.5.4.3}
+        - {name: wordpress-popular-posts, version: tags/2.3.5}
+        - {name: wp-markdown, version: tags/1.2}
+        - {name: wp-syntax, version: tags/1.0}
+        - {name: wptouch, version: tags/1.9.6.3}
+        #- {name: , version: }
+        #- {name: stealth-login-page, version: tags/3.0.0}
+        #- {name: limit-login-attempts, version: tags/1.7.1}
+
+    - name: chown wp
+      file: path=/var/www/wordpress recurse=yes owner=www-data group=www-data state=directory
+      tags: wp_plugins
+
+    - name: noop
+      command: touch /dev/null
+      tags: noop
+
+  ##
+  # Restart services
+  #
+  handlers:
+    - name: Restart sshd
+      action: service name=ssh state=restarted
+      tags: common

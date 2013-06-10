@@ -1,0 +1,20 @@
+<VirtualHost *:80>
+  ServerName carmudgeons.com
+  ServerAlias www.carmudgeons.com
+  Redirect permanent / http://forums.carmudgeons.com/
+</VirtualHost>
+
+<VirtualHost *:80>
+        ServerAdmin ops@aynassociates.com
+        ServerAlias *.carmudgeons.com
+
+        VirtualDocumentRoot /home/ayn/DOMAINS/%2+/%1/
+
+        <Directory /home/*/DOMAINS/*>
+                Options FollowSymLinks MultiViews
+                AllowOverride All
+                Order allow,deny
+                allow from all
+        </Directory>
+
+</VirtualHost>
