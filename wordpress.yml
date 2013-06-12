@@ -224,10 +224,13 @@
         - {name: disqus-comment-system, version: tags/2.74}
         - {name: embedded-video-with-link, version: tags/4.1}
         - {name: feedburner-plugin, version: trunk}
+        - {name: font-awesome, version: tags/3.1}
         - {name: google-analytics-for-wordpress, version: tags/4.3.3}
         - {name: intensedebate, version: tags/2.9.5}
+        - {name: jetpack, version: tags/2.2.5}
         - {name: jquery-image-lazy-loading, version: tags/0.20}
         - {name: link-manager, version: trunk}
+        - {name: mailchimp, version: tags/1.2.14}
         - {name: milestone, version: tags/1.0}
         - {name: order-categories, version: trunk}
         - {name: prev-next-keyboard-navigation, version: tags/0.6}
@@ -240,6 +243,7 @@
         - {name: wordpress-importer, version: tags/0.6.1}
         - {name: wordpress-mu-domain-mapping, version: tags/0.5.4.3}
         - {name: wordpress-popular-posts, version: tags/2.3.5}
+        - {name: wordpress-seo, version: tags/1.4.7}
         - {name: wp-markdown, version: tags/1.2}
         - {name: wp-syntax, version: tags/1.0}
         - {name: wptouch, version: tags/1.9.6.3}
