@@ -18,6 +18,7 @@ php_html_errors: 'On'
 php_post_max_size: '32M'
 php_upload_max_filesize: '32M'
 php_date_timezone: 'Europe/London'
+php_memory_limit: '512M'
 
 # apc.ini
 apc_rfc1867: '1'

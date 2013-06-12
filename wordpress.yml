@@ -5,13 +5,16 @@
 ---
 - hosts: wordpress
   sudo: yes
-  vars:
-    server_hostname: 'digitalocean.andrewng.com'
-    wordpress_version: 3.5.1
 
   vars_files:
     - vars/default-settings.yml
     - vars/private-settings.yml
+
+  vars:
+    server_hostname: 'digitalocean.andrewng.com'
+    wordpress_version: 3.5.1
+    php_memory_limit: 512M
+
 
   tasks:
     - name: Update APT package cache

@@ -1,8 +1,10 @@
 # Ansible Ubuntu 12.04 LTS stacks
 
-based on [LAMP server-playbooks](https://github.com/fourkitchens/server-playbooks) and [5 minutes bootstrap](https://github.com/phred/5minbootstrap/)
+ref: [LAMP server-playbooks](https://github.com/fourkitchens/server-playbooks) and [5 minutes bootstrap](https://github.com/phred/5minbootstrap/)
 
 `carmudgeons.yml` provisions a LAMP digitalocean droplet
+
+
 `wordpress.yml` provisions a LAMP digitalocean droplet with Wordpress multisite install
 
 ## Setup Instructions
