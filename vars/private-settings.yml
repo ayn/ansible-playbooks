@@ -1,3 +1,7 @@
-ayn_password: foobarbaz
-ray_password: foobarbaz
+ayn_password: 'foobarbaz'
+ray_password: 'foobarbaz'
 wordpress_mysql_user_passwd: foobarbaz
+aws_access_key_id: foobarbaz
+aws_secret_access_key: foobarbaz/foobarbaz
+mysql_root_password: 'foobarbaz'
+

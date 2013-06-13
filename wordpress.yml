@@ -14,7 +14,7 @@
     server_hostname: 'digitalocean.andrewng.com'
     wordpress_version: 3.5.1
     php_memory_limit: 512M
-
+    s3_backup_folder: digitalocean-wpmu
 
   tasks:
     - name: Update APT package cache
@@ -164,6 +164,8 @@
       tags: common
 
     - include: common-tasks/mysql-secure.yml
+
+    - include: common-tasks/s3-backup.yml
 
     ##
     # Wordpress MySQL setup

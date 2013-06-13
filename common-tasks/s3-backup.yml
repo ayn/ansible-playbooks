@@ -1,0 +1,24 @@
+---
+##
+# backup to S3
+#
+# ref:
+# https://github.com/zertrin/duplicity-backup
+# http://grysz.com/2011/04/04/configure-amazon-s3-backup-with-backupninja-and-duplicity/
+#
+- name: backup pkgs
+  apt: pkg={{ item }} state=installed
+  tags: backup
+  with_items:
+    - s3cmd
+    - backupninja
+    - rdiff-backup
+
+- name: backupninja
+  template: src=templates/{{ item.name }}.j2 dest={{ item.dest }} owner=root group=root mode={{ item.mode }}
+  tags: backup
+  with_items:
+    - {name: etc-backup.d-20.mysql, mode: 600, dest: /etc/backup.d/20.mysql}
+    - {name: etc-backup.d-30.rdiff, mode: 600, dest: /etc/backup.d/30.rdiff}
+    - {name: etc-backup.d-40.s3sync.sh, mode: 700, dest: /etc/backup.d/40.s3sync.sh}
+    - {name: dot-s3cfg, mode: 600, dest: /root/.s3cfg}

@@ -8,9 +8,10 @@
   vars:
     server_hostname: 'carmudgeons.com'
     apache_server_alias: '*.carmudgeons.com'
+    s3_backup_folder: digitalocean-carmudgeons
 
   vars_files:
-    - vars/settings.yml
+    - vars/default-settings.yml
     - vars/private-settings.yml
 
   tasks:
@@ -144,6 +145,8 @@
       tags: common
 
     - include: common-tasks/mysql-secure.yml
+
+    - include: common-tasks/s3-backup.yml
 
     ##
     # Apache2 setup.
