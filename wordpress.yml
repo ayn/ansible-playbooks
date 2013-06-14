@@ -99,6 +99,14 @@
       action: lineinfile dest=/etc/cron.daily/00logwatch regexp="^/usr/sbin/logwatch" line="/usr/sbin/logwatch --output mail --mailto $logwatch_email --detail high" state=present create=yes
       tags: common
 
+    - name: Install python-software-properties
+      apt: pkg=python-software-properties state=installed
+      tags: update_mosh_repo
+
+    - name: Install latest mosh
+      apt_repository: repo=ppa:keithw/mosh state=present
+      tags: update_mosh_repo
+
     ##
     # Apt package installation of required software.
     #
