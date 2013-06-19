@@ -257,6 +257,7 @@
         - {name: wp-markdown, version: tags/1.2}
         - {name: wp-syntax, version: tags/1.0}
         - {name: wptouch, version: tags/1.9.6.3}
+        - {name: segmentio, version: tags/0.5.6}
         #- {name: , version: }
         #- {name: stealth-login-page, version: tags/3.0.0}
         #- {name: limit-login-attempts, version: tags/1.7.1}
