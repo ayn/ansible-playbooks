@@ -139,6 +139,7 @@
         - vim
         - ack
         - mosh
+        - htop
 
     - name: my dotfiles, will have to rake install later
       git: repo=git://github.com/ayn/dotfiles.git dest=~ayn/.dotfiles
