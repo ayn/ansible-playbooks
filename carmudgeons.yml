@@ -97,8 +97,8 @@
     # Apt package installation of required software.
     #
     - name: General | Install required packages.
-      action: apt pkg=$item state=installed
-      tags: ayn
+      action: apt pkg={{ item }} state=installed
+      tags: debs
       with_items:
         - php5
         - apache2
@@ -121,6 +121,7 @@
         - uptimed
         - mosh
         - htop
+        - tmux
 
     - name: my dotfiles, will have to rake install later
       git: repo=git://github.com/ayn/dotfiles.git dest=~ayn/.dotfiles
