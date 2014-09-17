@@ -192,6 +192,38 @@
       tags: wp_mysql
 
     ##
+    # Piwik
+    #
+    - name: Piwik MySQL database
+      mysql_db: db=piwik state=present
+      tags: piwik
+
+    - name: Piwik MySQL user
+      mysql_user: name=piwik password=$mysql_piwik_password priv=piwik.*:ALL state=present
+      tags: piwik_this
+
+    - name: download Piwik zipfile
+      action: get_url url=http://builds.piwik.org/piwik.zip dest=/tmp
+      tags: piwik
+
+    - name: unzip Piwik
+      sudo: yes
+      action: shell unzip -u /tmp/piwik.zip -d /var/www -x "How to install Piwik.html"
+      tags: piwik
+
+    - name: chown Piwik
+      file: path=/var/www/piwik recurse=yes owner=www-data group=www-data state=directory
+      tags: piwik
+
+    - name: Apache Configuration for Piwik
+      action: template src=templates/etc-apache2-sites-available-piwik.j2 dest=/etc/apache2/sites-available/piwik.conf owner=root mode=0644 group=root
+      tags: piwik
+
+    - name: Apache | Enable our new site
+      action: command a2ensite piwik.conf
+      tags: piwik
+
+    ##
     # Apache2 setup.
     #
     - name: Apache | Enable some required modules
@@ -199,7 +231,7 @@
       tags: common
 
     - name: Apache | Configuration file for our site
-      action: template src=templates/etc-apache2-sites-available-wordpress.j2 dest=/etc/apache2/sites-available/wordpress
+      action: template src=templates/etc-apache2-sites-available-wordpress.j2 dest=/etc/apache2/sites-available/000-wordpress.conf
       tags: common
 
     - name: Apache | Disable the default site

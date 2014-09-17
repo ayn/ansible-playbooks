@@ -1,0 +1,20 @@
+<VirtualHost *:80>
+  ServerName analytics.andrewng.com
+  ServerAdmin ops@aynassociates.com
+  DocumentRoot /var/www/piwik
+
+  <Directory /var/www/piwik>
+    Order allow,deny
+    allow from all
+
+    <Files "piwik.php">
+         Order Deny,Allow
+         Allow from All
+    </Files>
+
+    <Files "piwik.js">
+         Order Deny,Allow
+         Allow from All
+    </Files>
+  </Directory>
+</VirtualHost>
